@@ -1,0 +1,49 @@
+# Large datasets
+FLIR_ADAS_v2/
+data/
+
+# Model checkpoints and weights
+*.pt
+*.pth
+checkpoints_distill/
+
+# Cycle GAN cache
+Cycle_gan/pseudo_rgb_cache/
+Cycle_gan/__pycache__/
+
+# Logs and results
+logs/
+Student/results/
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
