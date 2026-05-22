@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pickle import FALSE
 import argparse
 from pathlib import Path
 from typing import Dict
@@ -105,7 +104,7 @@ def main() -> None:
     args = _parse_args()
     device = torch.device('cuda' if args.device == 'cuda' and torch.cuda.is_available() else 'cpu')
 
-    student = yolov8s_thermal(num_classes=args.num_classes, include_p2=True, use_transformer_neck=FALSE).to(device)
+    student = yolov8s_thermal(num_classes=args.num_classes, include_p2=True, use_transformer_neck=False).to(device)
 
     # Teacher (Ultralytics YOLOv8-L)
     teacher = TeacherYOLOv8FeatureExtractor(weights=args.teacher_weights, device=device)
@@ -163,10 +162,6 @@ def main() -> None:
                 setattr(yolo_loss_fn.loss_fn.assigner, name, buf.to(device))
             for name, param in yolo_loss_fn.loss_fn.assigner.named_parameters():
                 setattr(yolo_loss_fn.loss_fn.assigner, name, param.to(device))
-
-
-
-
 
 
 

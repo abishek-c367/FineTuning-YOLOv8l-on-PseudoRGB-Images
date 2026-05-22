@@ -16,6 +16,7 @@ import kornia.augmentation as K
 from PIL import Image
 import numpy as np
 from metrics import DetectionMetricsAccumulator, print_metrics
+from torchvision.transforms import ToTensor
 
 
 class ChannelAdapter(nn.Module):
@@ -392,41 +393,73 @@ class DistillationTrainer:
         """Call at the start of each epoch to reset the cache pointer."""
         self._cache_index = 0
 
-    def _load_pseudo_rgb_from_cache(self, batch_size: int) -> Optional[torch.Tensor]:
+    #==========$$$$$$$$$$+=============
+    def _load_pseudo_rgb_from_cache(self,
+        file_names: List[str],
+        cache_dir: str,
+        device: torch.device = None,
+    ) -> torch.Tensor:
         """
-        Load the next batch_size pseudo-RGB tensors from cache files.
-        Returns None if cache is exhausted (end of epoch).
+            Load cached pseudo-RGB images corresponding to given thermal filenames.
+            Args:
+                file_names:
+                    List of original thermal image filenames from the batch.
+                    Example:
+                        [
+                            "FLIR_00001.jpeg",
+                            "FLIR_00002.jpeg"
+                        ]
+                cache_dir:
+                    Directory containing cached pseudo-RGB PNG files.
+                device:
+                    Optional torch device to move tensor onto.
+            Returns:
+                Tensor of shape:
+                    (B, 3, H, W)
+                dtype:
+                    torch.float32
+                range:
+                    [0, 1]
+            """
 
-        Cache files are named pseudo_rgb_000000.png ... pseudo_rgb_N.png
-        Each file is a PNG image of shape (H, W, 3), uint8 [0,255].
+        transform = ToTensor()   # Converts PIL -> tensor in [0,1]
+
+        batch_tensors = []
+
+        for fname in file_names:
+            # Convert original filename -> cached png filename
+            # Example:
+            #   FLIR_00001.jpeg -> FLIR_00001.png
+            cache_filename = os.path.splitext(fname)[0] + ".png"
+
+            cache_path = os.path.join(cache_dir, cache_filename)
+
+            if not os.path.exists(cache_path):
+                raise FileNotFoundError(
+                    f"Cached pseudo-RGB image not found:\n{cache_path}"
+                )
+
+            # Load image
+            img = Image.open(cache_path).convert("RGB")
+
+            # Convert to tensor
+            # Shape: (3, H, W)
+            img_tensor = transform(img)
+
+            batch_tensors.append(img_tensor)
+
+        # Stack into batch tensor
+        # Shape: (B, 3, H, W)
+        batch_tensor = torch.stack(batch_tensors, dim=0)
+
+        if device is not None:
+            batch_tensor = batch_tensor.to(device, non_blocking=True)
+
+        return batch_tensor
+
+    def _generate_pseudo_rgb(self, file_name: List[str]) -> torch.Tensor:
         """
-        if not self.use_cache:
-            return None
-
-        end_idx = self._cache_index + batch_size
-
-        if end_idx > len(self._cache_files):
-            # Ran out of cache files — this shouldn't happen if dataset
-            # and cache sizes match, but handle gracefully
-            print(f"⚠ Cache exhausted at index {self._cache_index} "
-                  f"(total files: {len(self._cache_files)}). "
-                  f"Falling back to live generation for this batch.")
-            return None
-
-        tensors = []
-        for i in range(self._cache_index, end_idx):
-            fpath = os.path.join(self.pseudo_rgb_cache_dir, self._cache_files[i])
-            # Load PNG image and convert to tensor
-            img_pil = Image.open(fpath)
-            img_np = np.array(img_pil)  # (H, W, 3) uint8
-            img_tensor = torch.from_numpy(img_np).float().permute(2, 0, 1) / 255.0  # (3, H, W) [0,1]
-            tensors.append(img_tensor)
-
-        self._cache_index = end_idx
-        return torch.stack(tensors, dim=0).to(self.device)           # (B, 3, H, W)
-
-    def _generate_pseudo_rgb(self, thermal: torch.Tensor) -> torch.Tensor:
-        """
+        _generate_pseudo_rgb(self, thermal: torch.Tensor) -> torch.Tensor:
         Generate pseudo-RGB from thermal.
         Uses cache if available, otherwise runs CycleGAN live.
         thermal: (B, 1, H, W)
@@ -434,12 +467,13 @@ class DistillationTrainer:
         """
         # ── Try cache first ───────────────────────────────────
         if self.use_cache:
-            cached = self._load_pseudo_rgb_from_cache(thermal.shape[0])
+            cached = self._load_pseudo_rgb_from_cache(file_name, self.pseudo_rgb_cache_dir, self.device)
             if cached is not None:
                 return cached          # instant — no CycleGAN call at all
         # ─────────────────────────────────────────────────────
 
         # ── Fallback: live CycleGAN generation ───────────────
+        '''
         with torch.no_grad():
             thermal_3ch = thermal.repeat(1, 3, 1, 1)
             device = thermal_3ch.device
@@ -450,6 +484,7 @@ class DistillationTrainer:
             pseudo_rgb = (pseudo_rgb + 1) / 2
         return pseudo_rgb
         # ─────────────────────────────────────────────────────
+        '''
     def parse_output(self, preds):
         # preds = [P3, P4, P5], each [B, 67, H, W]
         feats = preds[1:]
@@ -536,7 +571,7 @@ class DistillationTrainer:
     self,
     thermal_batch: torch.Tensor,
     targets=None,
-    ):
+    file_name = None)-> Tuple[Dict[str, float], Optional[List[torch.Tensor]]]:
         """
         Perform single training step.
     
@@ -555,7 +590,8 @@ class DistillationTrainer:
         self.student.train()
     
         # ── Pseudo-RGB (cache or live CycleGAN) ──────────────────────────────────
-        pseudo_rgb = self._generate_pseudo_rgb(thermal_batch)
+        pseudo_rgb = self._generate_pseudo_rgb(file_name)
+        print(f"Pseudo-RGB generated for batch (shape: {pseudo_rgb.shape})")
     
         # ── Teacher features (frozen) ─────────────────────────────────────────────
         with torch.no_grad():
@@ -754,6 +790,7 @@ def train_distillation(
 
     avg_losses = {}
     for epoch in range(start_epoch, epochs):
+        print("Hello hello hello")
         trainer.student.train()
         trainer.reset_cache_index()
 
@@ -764,19 +801,15 @@ def train_distillation(
 
         for step, batch in enumerate(pbar):
 
-            # ── Unpack batch ──────────────────────────────────────────────────
-            if isinstance(batch, (list, tuple)):
-                thermal_batch = batch[0]
-                targets = batch[1] if len(batch) > 1 else None
-            else:
-                thermal_batch = batch
-                targets = None
-            # ─────────────────────────────────────────────────────────────────
+            print(f"step = {step} - batch type: {type(batch)}")
+            
+            thermal_batch, targets , filenames = batch
 
             # ── Training step — now returns (losses, predictions) ─────────────
             losses, student_predictions_for_metrics = trainer.train_step(
-                thermal_batch, targets 
+                thermal_batch, targets,filenames
             )
+            break
             # ─────────────────────────────────────────────────────────────────
 
             # ── Accumulate metrics using predictions from train_step ──────────
@@ -1180,6 +1213,9 @@ if __name__ == "__main__":
     print("=" * 60)
     print("Distillation Module Test")
     print("=" * 60)
+
+
+    
     
     # Import model classes
     import sys
@@ -1278,3 +1314,4 @@ if __name__ == "__main__":
         print(f"  {k}: {v.item():.4f}")
     
     print("\n✓ All distillation tests passed!")
+    
