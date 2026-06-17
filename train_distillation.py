@@ -206,12 +206,12 @@ def main() -> None:
         val_dataloader=val_dl,
         epochs=int(args.epochs),
         start_epoch=start_epoch,
-        log_interval=1000,
+        log_interval=100,
         save_interval=5,
         checkpoint_dir=str(args.checkpoint_dir),
         num_classes=args.num_classes,
         imgsz=args.imgsz,
-        validation_interval=1000,
+        validation_interval=250,
     )
 
 if __name__ == "__main__":

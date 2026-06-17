@@ -327,8 +327,14 @@ class DistillationTrainer:
         self.yolo_loss_ref = None
         self.feat_loss_ref = None
 
+        print("Using device:", self.device)
+
+        if self.device.type == "cuda":
+            print("GPU:", torch.cuda.get_device_name(0))
+
          # ── NEW: cache setup ──────────────────────────────────
         self.pseudo_rgb_cache_dir = pseudo_rgb_cache_dir
+        root_dir = os.path.join(pseudo_rgb_cache_dir, "data")
         self.use_cache = (
             pseudo_rgb_cache_dir is not None
             and os.path.isdir(pseudo_rgb_cache_dir)
@@ -338,7 +344,7 @@ class DistillationTrainer:
         if self.use_cache:
             # Pre-build sorted list of all cached .png files for fast lookup
             self._cache_files = sorted([
-                f for f in os.listdir(pseudo_rgb_cache_dir)
+                f for f in os.listdir(root_dir)
                 if f.endswith(".png")
             ])
             print(f"✓ Pseudo-RGB cache enabled: {len(self._cache_files)} files "
@@ -591,7 +597,6 @@ class DistillationTrainer:
     
         # ── Pseudo-RGB (cache or live CycleGAN) ──────────────────────────────────
         pseudo_rgb = self._generate_pseudo_rgb(file_name)
-        print(f"Pseudo-RGB generated for batch (shape: {pseudo_rgb.shape})")
     
         # ── Teacher features (frozen) ─────────────────────────────────────────────
         with torch.no_grad():
@@ -671,6 +676,7 @@ class DistillationTrainer:
         self,
         thermal_batch: torch.Tensor,
         targets: Optional[Dict] = None
+
     ) -> Dict[str, float]:
         """
         Perform validation step (no gradients).
@@ -790,7 +796,6 @@ def train_distillation(
 
     avg_losses = {}
     for epoch in range(start_epoch, epochs):
-        print("Hello hello hello")
         trainer.student.train()
         trainer.reset_cache_index()
 
@@ -801,15 +806,13 @@ def train_distillation(
 
         for step, batch in enumerate(pbar):
 
-            print(f"step = {step} - batch type: {type(batch)}")
-            
             thermal_batch, targets , filenames = batch
 
             # ── Training step — now returns (losses, predictions) ─────────────
             losses, student_predictions_for_metrics = trainer.train_step(
                 thermal_batch, targets,filenames
             )
-            break
+            
             # ─────────────────────────────────────────────────────────────────
 
             # ── Accumulate metrics using predictions from train_step ──────────
@@ -852,7 +855,7 @@ def train_distillation(
                         val_thermal = val_batch
                         val_targets = None
 
-                    val_losses = trainer.validate_step(val_thermal, val_targets)
+                    # val_losses = trainer.validate_step(val_thermal, val_targets)
                     val_preds = None
                     with torch.no_grad():
                         val_output = trainer.student(val_thermal.to(trainer.device), return_features=True)
@@ -870,9 +873,9 @@ def train_distillation(
                             student_model=trainer.student,
                         )
                         val_metrics = val_accum.compute()
-                        print(f"[Validation @ step {step+1}] val_feature_loss={val_losses.get('val_feature_loss', 0):.4f}, mAP50={val_metrics.get('mAP50', 0):.4f}, mAP75={val_metrics.get('mAP75', 0):.4f}\n")
+                        print(f"[Validation @ step {step+1}] , mAP50={val_metrics.get('mAP50', 0):.4f}, mAP75={val_metrics.get('mAP75', 0):.4f}\n")
                     else:
-                        print(f"[Validation @ step {step+1}] val_feature_loss={val_losses.get('val_feature_loss', 0):.4f} (no val metrics available)\n")
+                        print(f"[Validation @ step {step+1}] (no val metrics available)\n")
 
                 accumulator.reset()
             # ─────────────────────────────────────────────────────────────────
@@ -914,9 +917,9 @@ def train_distillation(
                     thermal_batch = batch
                     targets = None
 
-                step_losses = trainer.validate_step(thermal_batch, targets)
-                for k, v in step_losses.items():
-                    val_losses[k] = val_losses.get(k, 0) + v
+                # step_losses = trainer.validate_step(thermal_batch, targets)
+                # for k, v in step_losses.items():
+                #     val_losses[k] = val_losses.get(k, 0) + v
 
                 if targets is not None:
                     with torch.no_grad():

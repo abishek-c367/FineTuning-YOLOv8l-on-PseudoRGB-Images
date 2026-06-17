@@ -13,6 +13,7 @@ num_classes      = 3
 device           = "cuda"
 checkpoint_dir   = "checkpoints_distill"
 pseudo_rgb_cache = "Cycle_gan/pseudo_rgb_cache"
+cache_dir = "Cycle_gan/pseudo_rgb_cache/data"
 # METRIC_LOG_INTERVAL = 100 
 val_split_dir = "FLIR_ADAS_V2/images_thermal_val"
 val_coco_json = "FLIR_ADAS_V2/images_thermal_val/coco.json"
