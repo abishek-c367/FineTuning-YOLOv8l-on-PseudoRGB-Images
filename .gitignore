@@ -1,6 +1,6 @@
 # Large datasets
 FLIR_ADAS_v2/
-data/
+
 
 # Model checkpoints and weights
 *.pt

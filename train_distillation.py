@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pickle import FALSE
 import argparse
 from pathlib import Path
 from typing import Dict
@@ -105,7 +104,7 @@ def main() -> None:
     args = _parse_args()
     device = torch.device('cuda' if args.device == 'cuda' and torch.cuda.is_available() else 'cpu')
 
-    student = yolov8s_thermal(num_classes=args.num_classes, include_p2=True, use_transformer_neck=FALSE).to(device)
+    student = yolov8s_thermal(num_classes=args.num_classes, include_p2=True, use_transformer_neck=False).to(device)
 
     # Teacher (Ultralytics YOLOv8-L)
     teacher = TeacherYOLOv8FeatureExtractor(weights=args.teacher_weights, device=device)
@@ -166,10 +165,6 @@ def main() -> None:
 
 
 
-
-
-
-
     # Channel maps for mimic loss
     student_channels: Dict[str, int] = {k: int(v) for k, v in student.neck.out_channels.items() if k in ("P3", "P4", "P5")}
     # student_channels = infer_yolov8_pyramid_channels(
@@ -211,12 +206,12 @@ def main() -> None:
         val_dataloader=val_dl,
         epochs=int(args.epochs),
         start_epoch=start_epoch,
-        log_interval=1000,
+        log_interval=100,
         save_interval=5,
         checkpoint_dir=str(args.checkpoint_dir),
         num_classes=args.num_classes,
         imgsz=args.imgsz,
-        validation_interval=1000,
+        validation_interval=250,
     )
 
 if __name__ == "__main__":

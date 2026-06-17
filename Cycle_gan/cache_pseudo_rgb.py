@@ -109,6 +109,7 @@ def main():
         paths=FlirCocoPaths(images_dir=split_dir, coco_json=coco_json),
         imgsz=IMGSZ,
     )
+    #The above dataset now returns (thermal tensor, file_name , target)
     print(f"Dataset size: {len(dataset)} images")
 
     # Check if cache is already complete
@@ -150,7 +151,6 @@ def main():
     print("✓ Generator loaded and frozen.")
 
     # ── Main caching loop ──
-    global_idx = 0
     skipped    = 0
     saved      = 0
 
@@ -161,45 +161,55 @@ def main():
 
     for batch in pbar:
         # Unpack batch — same logic as train_distillation loop
-        if isinstance(batch, (list, tuple)):
-            thermal_batch = batch[0]    # (B, 1, H, W)
-        else:
-            thermal_batch = batch
-
-        batch_size = thermal_batch.shape[0]
-
-        # Identify which samples in this batch still need caching
+        thermal_batch, _,file_names = batch  # thermal_batch: (B, 1, H, W), files_names: list of file names
+        #set of existing files in cache dir to avoid repeated os.listdir calls
+        existing_files = set(os.listdir(CACHE_DIR))
+        #Initialize lists to track which indices/files need processing
         indices_to_process = []
-        for i in range(batch_size):
-            idx = global_idx + i
-            if idx not in existing_indices:
+        filenames_to_process = []
+
+        # Check each file in the batch to see if its corresponding cache file already exists
+
+        for i, fname in enumerate(file_names):
+
+            cache_name = os.path.splitext(fname)[0] + ".png"
+
+            if cache_name not in existing_files:
                 indices_to_process.append(i)
+                filenames_to_process.append(cache_name)
             else:
                 skipped += 1
 
-        if indices_to_process:
-            # Only run generator on samples that aren't cached yet
-            subset = thermal_batch[indices_to_process]         # (N, 1, H, W)
-            pseudo_rgb_batch = generate_pseudo_rgb_batch(
-                subset, cyclegan_generator, DEVICE
-            )                                                   # (N, 3, H, W)
+        #make a subset of the batch that only includes the files that need processing to save GPU time and memory
+        subset = thermal_batch[indices_to_process]        # (N, 1, H, W)
+        # Generate pseudo-RGB for the subset
+        pseudo_rgb_batch = generate_pseudo_rgb_batch(
+            subset,
+            cyclegan_generator,
+            DEVICE
+        )
+        # Now save each generated pseudo-RGB image to disk with the correct filename
+        for local_i, cache_filename in enumerate(filenames_to_process):
 
-            # Save each image individually
-            for local_i, dataset_i in enumerate(indices_to_process):
-                global_dataset_idx = global_idx + dataset_i
-                save_path = os.path.join(
-                    CACHE_DIR,
-                    f"pseudo_rgb_{global_dataset_idx:06d}.png"
-                )
-                # Convert tensor (3, H, W) [0,1] to PIL Image
-                img_tensor = pseudo_rgb_batch[local_i]  # (3, H, W)
-                img_np = (img_tensor.permute(1, 2, 0).cpu().numpy() * 255).astype(np.uint8)  # (H, W, 3) uint8
-                img_pil = Image.fromarray(img_np)
-                img_pil.save(save_path)
-                saved += 1
+            save_path = os.path.join(CACHE_DIR, cache_filename)
 
-        global_idx += batch_size
-        pbar.set_postfix(saved=saved, skipped=skipped)
+            img_tensor = pseudo_rgb_batch[local_i]
+
+            img_np = (
+                img_tensor.permute(1, 2, 0)
+                .cpu()
+                .numpy() * 255
+            ).astype(np.uint8)
+
+            img_pil = Image.fromarray(img_np)
+
+            img_pil.save(save_path)
+
+            saved += 1
+
+
+
+
 
     print(f"\n✓ Caching complete!")
     print(f"  Saved  : {saved} new files")
@@ -210,3 +220,21 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # import json
+    # i = 0
+    # with open("/home/aryan_s2/Detection_with_Distillation/FLIR_ADAS_v2/images_rgb_val/coco.json") as f:
+    #     data = json.load(f)
+    # # Create image-id -> filename mapping
+    # image_map = {img["id"]: img["file_name"] for img in data["images"]}
+    # for key,value in image_map.items():
+    #     if (i <= 10):
+    #         print(f"{key}:{value}\n")
+    #         i+=1
+        
+    # # Example annotation
+    # ann = data["annotations"][0]
+    # print(ann)
+
+    # image_name = image_map[ann["image_id"]]
+
+    # print(image_name)
