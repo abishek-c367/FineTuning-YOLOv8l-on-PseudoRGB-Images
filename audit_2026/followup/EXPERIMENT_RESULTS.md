@@ -34,5 +34,7 @@ Raw outputs with environment and commit hashes: `results/T0*.json` (original cod
 | T06 edge cases | single-GT-box crash (C4), train-mode eval drift (C5), class maps (C6) | characterises defects | see summary |
 | T07 latency | batch-1 512 fp32 latency table | pass (measurement) | unchanged |
 | T08 zer0 gate | weather gate has no trained weights; outputs are random-init | characterises scaffold | unchanged |
+| T09 preprocessing factor isolation (16 Oct, review P0) | U/V/W/Z differ by exactly one declared operation each; rounding error ≤ half a step; float adds no levels; full-range 8-bit collapses the scene band (78 vs 256 levels on the synthetic scene); causal A1 unchanged by future frames; affine folds exactly into conv1 | n/a | **pass** (`results/T09_preproc_factor_isolation.json`, `all_pass: true`) |
+| T10 manifest verifier (16 Oct, review P1) | clean synthetic dataset passes; eight planted violations (shared video id, TIFF without JPEG, JPEG dimension mismatch, exact duplicate, near-duplicate, box outside image, undeclared category, count above the 14-bit container) each flagged, exit 1 | n/a | **pass** (`results/T10_manifest_verifier.json`, `all_pass: true`) |
 
-These tests show that the code paths execute and that the patches change the behaviours they target. They do not show that any configuration trains to a useful detector on FLIR ADAS v2.
+T09 and T10 are static tests on synthetic arrays; they establish nothing about detector performance. These tests show that the code paths execute and that the patches change the behaviours they target. They do not show that any configuration trains to a useful detector on FLIR ADAS v2.

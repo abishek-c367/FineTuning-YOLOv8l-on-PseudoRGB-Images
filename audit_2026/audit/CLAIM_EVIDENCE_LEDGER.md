@@ -29,3 +29,16 @@ Each narrative claim that appears in the slides, the summary PDF, the READMEs, t
 | L23 | Cheap enhancement has oracle headroom on thermal detection | hypothesis (H_ENH) | No experiment | Open; go/no-go for routing |
 | L24 | The 2ε regret bound and the DPI are contributions | brief's suggestion | `MATH_STAT_REVIEW` §2–3 | Refuted as contributions |
 | L25 | Forensics proposal (DDIM + contrastive) is novel | PDF claim | `SECOND_PROJECT_FEASIBILITY` (DRCT ICML 2024) | Refuted |
+
+## Added 16 Oct 2026 (independent method review)
+
+| # | Claim | Class | Evidence pointer | Status |
+|---|---|---|---|---|
+| L26 | "C1 − C2 isolates 8-bit rounding" (matrix v2, draft rev. 2) | design claim | Review P0: A0 was unclipped at float and clipped at 8-bit, so the contrast bundled clipping. Fixed: A0 clipped at both precisions; clipping measured by C21 (A0u); `preproc_controls.py` + T09 show each step is one operation | **Was wrong; corrected** |
+| L27 | "C2 − C14 is the quantization container term" | design claim | Both arms are 8-bit; the difference is range allocation / mapping (plus saturation). Relabelled; no "quantization" wording unless Δ2a's own CI supports it | **Relabelled** |
+| L28 | "float32 input preserves more information than 8-bit" | design claim | T09: U has no more distinct levels than the counts; the intervention is the absence of rounding after a specified map | Reworded in abstract and matrix |
+| L29 | "C10 − C12 isolates the pretraining mismatch (Lynred)" | design claim | Review P0: compares two maps inside one initialisation. Fixed: H3(a) relabelled map sensitivity; H3(b) DiD within 3-ch with new cell C22 | **Was over-claimed; corrected** |
+| L30 | "A1 per-video affine is deployable" | design claim | Offline whole-video statistics are non-causal; A1 now defined causal (`arm_A1_causal`, T09) | Corrected |
+| L31 | "Track D is inference-only, < 1 GPU-day" (follow-up 16 Oct) | planning claim | Requires a trained detector (calibration run C13 seed 0, ≈ 12 GPU-h) and enhancer tuning on development videos | **Overstated; corrected** in PUBLICATION_OPTIONS |
+| L32 | "Pseudo-RGB plus cross-modal KD into a thermal-only student is novel" | novelty claim | Yoon, Park, Paik, IEEE Access 2026 (DOI 10.1109/ACCESS.2025.3650060; abstract verified via Consensus: FLIR Aligned + LLVIP, MMD + response distillation, 40.4 % mAP, thermal-only inference) | **Not novel**; only the four-arm teacher-modality control question remains open; Yoon's ablation rows (reviewer: baseline 38.0, response-KD 36.8, MMD 39.4) UNVERIFIED, full text not accessible from this machine |
+| L33 | Bootstrap: "no seed pairing across cells is assumed" (draft rev. 2 §4.2) | design claim | Seeds are paired by index; joint seed draw adopted; independent draw kept as sensitivity | Corrected |

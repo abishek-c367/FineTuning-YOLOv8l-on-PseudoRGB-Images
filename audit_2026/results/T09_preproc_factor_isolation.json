@@ -1,0 +1,60 @@
+{
+  "env": {
+    "python": "3.10.12",
+    "torch": "2.6.0+cu124",
+    "cuda_available": false,
+    "cuda_version": "12.4",
+    "gpu": null,
+    "time": "2026-10-16T10:52:44",
+    "ultralytics": "8.4.178",
+    "student_repo_commit": "118c2153004bf39dadebb6ee57a079a005c4cf47",
+    "zer0_repo_commit": "7948bd6aa8fe9139a8779f09190e821d900969f6"
+  },
+  "V_equals_clip_U": true,
+  "W_equals_requant_V": true,
+  "Z_equals_requant_fullrange": true,
+  "requant8_refuses_unclipped": true,
+  "clipped_fraction_U": 0.018880208333333332,
+  "V_equals_U_inside_band": true,
+  "V_differs_from_U_only_on_clipped": true,
+  "rounding_error_max": 0.001959681510925293,
+  "rounding_error_bound": 0.00196078431372549,
+  "rounding_within_half_step": true,
+  "levels": {
+    "x": 1797,
+    "U": 1797,
+    "V": 1715,
+    "W": 256,
+    "Z": 78
+  },
+  "float_adds_no_levels": true,
+  "W_at_most_256_levels": true,
+  "V_keeps_more_levels_than_W": true,
+  "scene_band_counts": 7894,
+  "Z_levels_in_band_le_band_over_64_plus_2": true,
+  "Z_fewer_levels_than_W": true,
+  "decomposition_terms_levels": {
+    "clipping": 82.0,
+    "requantization": 1459.0,
+    "range_allocation_8bit": 178.0,
+    "total": 1719.0
+  },
+  "monotone": {
+    "A0u": true,
+    "A0": true,
+    "A0_8": true,
+    "R_8": true
+  },
+  "A2_percentiles": [
+    0.0,
+    0.9995030164718628
+  ],
+  "A2_p1_p99_at_0_1": true,
+  "A1_causal_frame2_unchanged_by_future": true,
+  "A1_offline_frame2_changed_by_future": true,
+  "fold_max_abs_diff": 2.0078461702155437e-06,
+  "fold_exact_interior": true,
+  "fold_fails_for_clipped_V_when_clipping_active": true,
+  "dtypes_float32": true,
+  "all_pass": true
+}

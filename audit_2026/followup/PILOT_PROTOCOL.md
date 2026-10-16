@@ -17,12 +17,14 @@ Student: the repository's `yolov8_thermal.py` student with the trained configura
 | T2 | COCO YOLOv8-L, frozen | thermal grey-replicated to 3 channels, no translation | same | stock `yolov8l.pt` (present) |
 | T3 | COCO YOLOv8-L, frozen | CycleGAN pseudo-RGB from the cache (patch 0002) | same | `cyclegan_epoch_45.pth` |
 
+Interpretation caveat (review, 16 Oct): T1 has in-domain supervised teacher training that the frozen COCO teachers T2 and T3 lack, so T1 versus T2/T3 is not a pure input-modality effect; T1 is kept as a practical reference and **T2 versus T3** is the contrast that isolates the translation front-end (identical teacher weights and distillation recipe). Teacher-only mAP and class mapping are recorded for every teacher.
+
 Matched across arms: split, labels (one class convention, patch 0006), architecture, image size 512, batch, epochs, optimiser, schedule, augmentation (geometric only; photometric off because the teacher input must stay identical to the student's), feature levels (P3, P4), α = 0.2 where a teacher exists, seed. Documented mismatches: T1 costs one extra training run; T3 costs the CycleGAN cache (≈ 10 GB, ≈ 1 h on the full train set; minutes on the pilot subset).
 
 ## 3. Leakage prevention
 
 - Pilot subset: ≈ 200 train frames from ≤ 10 videos of `images_thermal_train` and 50 held-out frames from 3 other videos of the same split (video id parsed from `video-<id>-frame-<n>`); `images_thermal_val` and `video_thermal_test` untouched.
-- Manifest with SHA-256 per file; assertion that no video id is in both pilot subsets.
+- Manifest with SHA-256 per file by `audit_tools/verify_manifest.py` (video overlap, exact and near-duplicate frames, TIFF headers, JPEG pairing, box geometry); exit 1 blocks the pilot.
 - The CycleGAN checkpoint was trained by the collaborator on FLIR train; if it was trained on frames that end up in any later held-out set, that is recorded as a known leak of the translator (not of labels) and the later protocol holds out whole videos the checkpoint never saw, if its training list is available (`request list` item 2).
 - Teacher T1 is fine-tuned on the pilot train subset only during the pilot.
 

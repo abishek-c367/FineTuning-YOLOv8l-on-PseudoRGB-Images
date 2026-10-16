@@ -1,0 +1,28 @@
+{
+  "env": {
+    "python": "3.10.12",
+    "torch": "2.6.0+cu124",
+    "cuda_available": false,
+    "cuda_version": "12.4",
+    "gpu": null,
+    "time": "2026-10-16T10:52:53",
+    "ultralytics": "8.4.178",
+    "student_repo_commit": "118c2153004bf39dadebb6ee57a079a005c4cf47",
+    "zer0_repo_commit": "7948bd6aa8fe9139a8779f09190e821d900969f6"
+  },
+  "clean_exit_code": 0,
+  "clean_passes": true,
+  "bad_exit_code": 1,
+  "planted_violations_flagged": {
+    "video_shared": true,
+    "tiff_without_jpeg": true,
+    "jpeg_dims_mismatch": true,
+    "exact_duplicate": true,
+    "near_duplicate": true,
+    "box_outside": true,
+    "undeclared_category": true,
+    "count_over_container": true
+  },
+  "report_excerpt": "# Manifest verification report\n\nroot: `/tmp/gateir_manifest_bad_eu73qtwu`\n\n- train: 8 TIFF frames, 8 videos, 3 boxes, max count 16389\n- val: 3 TIFF frames, 3 videos, 0 boxes, max count 2999\n\n## Hard failures (7)\n\n- train/video-E-frame-000001: TIFF without a JPEG pair\n- train/video-F-frame-000001: JPEG (32, 24) vs TIFF (64, 48) dimension mismatch\n- train/video-G-frame-000001: max count 16389 exceeds the 14-bit container\n- train/video-H-frame-000001: box [60, 40, 10, 10] outside the image or degenerate\n- train/video-I-frame-000001: undeclared category id 9\n- video id A appears in splits ['train', 'val']\n- exact duplicate TIFF (sha256 9924ee9c408b) in splits ['train', 'val']\n\n## Warnings (1)\n\n- near-duplicate frames: train/video-D-frame-000001 ~ val/video-K-frame-000001 (dHash distance 0)\n",
+  "all_pass": true
+}
