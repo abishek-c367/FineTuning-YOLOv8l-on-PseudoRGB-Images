@@ -1,0 +1,51 @@
+{
+  "env": {
+    "python": "3.10.12",
+    "torch": "2.6.0+cu124",
+    "cuda_available": true,
+    "cuda_version": "12.4",
+    "gpu": "NVIDIA GeForce RTX 2080 Ti",
+    "time": "2026-10-15T21:32:55",
+    "ultralytics": "8.4.178",
+    "student_repo_commit": "06e70f45c5da35f5d4474a7eacab4495a7dcdca8",
+    "zer0_repo_commit": "7948bd6aa8fe9139a8779f09190e821d900969f6"
+  },
+  "notebook_logic_same_arch": {
+    "missing_keys": 369,
+    "unexpected_keys": [
+      "epoch",
+      "student_state",
+      "feature_loss_state",
+      "optimizer_state",
+      "scheduler_state",
+      "alpha",
+      "losses"
+    ],
+    "n_unexpected": 7,
+    "weights_changed_vs_init": false,
+    "weights_equal_trained": false
+  },
+  "notebook_default_ctor_vs_trained_ckpt": {
+    "ctor_defaults": {
+      "include_p2": false,
+      "use_transformer_neck": true
+    },
+    "missing_keys_n": 13,
+    "unexpected_keys_n": 30,
+    "missing_examples": [
+      "transformer_neck.pos_embed_reservoir",
+      "transformer_neck.blocks.0.norm1.weight",
+      "transformer_neck.blocks.0.norm1.bias",
+      "transformer_neck.blocks.0.attn.qkv.weight",
+      "transformer_neck.blocks.0.attn.qkv.bias"
+    ],
+    "unexpected_examples": [
+      "head.heads.P2.cls_conv.0.conv.weight",
+      "head.heads.P2.cls_conv.0.bn.weight",
+      "head.heads.P2.cls_conv.0.bn.bias",
+      "head.heads.P2.cls_conv.0.bn.running_mean",
+      "head.heads.P2.cls_conv.0.bn.running_var"
+    ]
+  },
+  "evaluate_thermal_loader_equal_trained": true
+}

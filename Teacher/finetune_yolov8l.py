@@ -18,7 +18,7 @@ DATASET_ROOT = ''
 MODEL_WEIGHTS = ''
 OUTPUT_DIR = ''
 
-CLASS_NAMES = ['person', 'car', 'bicycle'] 
+CLASS_NAMES = ['bicycle', 'car', 'person']   # audit C6: same order as data/flir_dataset.CLASSES
 
 #Training hyperparameters
 

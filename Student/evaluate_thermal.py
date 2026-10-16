@@ -477,11 +477,10 @@ def evaluate(
         B, C, H, W = images.shape
 
         # ── Forward pass ─────────────────────────────────────────────────────
-        # Put model in training mode temporarily so the head returns the
-        # Ultralytics-format list (reg+cls concatenated per scale).
-        model.train()
+        # audit C5: forward in eval mode. return_features=True already yields
+        # 'predictions_ultralytics' in eval mode; train() would use batch BN statistics
+        # and mutate running stats, making the mAP batch-dependent.
         raw_output = model(images, return_features=True)
-        model.eval()
 
         raw_preds: List[torch.Tensor] = raw_output["predictions_ultralytics"]
 
@@ -615,28 +614,28 @@ def parse_args() -> argparse.Namespace:
     # Model
     ap.add_argument("--num-classes", type=int, default=3,
                     help="Number of detection classes (must match training).")
-    ap.add_argument("--include-p2", action="store_true", default=True,
-                    help="Include P2 head (must match training).")
-    ap.add_argument("--no-transformer", action="store_true", default=False,
+    ap.add_argument("--no-p2", action="store_true", default=False,
+                    help="Disable the P2 head (training used include_p2=True).")
+    ap.add_argument("--no-transformer", action="store_true", default=True,
                     help="Disable transformer neck (must match training).")
     ap.add_argument("--class-names", nargs="+",
-                    default=["person", "car", "bicycle"],
-                    help="Human-readable class names in class-id order.")
+                    default=["bicycle", "car", "person"],
+                    help="Class names in class-id order (FlirThermalCocoDataset sorts allowed names alphabetically).")
 
     # Inference
     ap.add_argument("--imgsz",   type=int,   default=512)
     ap.add_argument("--batch",   type=int,   default=8)
     ap.add_argument("--workers", type=int,   default=2)
-    ap.add_argument("--conf",    type=float, default=0.25,
+    ap.add_argument("--conf",    type=float, default=0.001,
                     help="Confidence threshold for detections.")
     ap.add_argument("--iou-nms", type=float, default=0.45,
                     help="IoU threshold for NMS.")
     ap.add_argument("--device",  default="cuda")
 
     # Output
-    ap.add_argument("--save-json", default="/home/aryan_s2/Detection_with_Distillation/Student/results/eval_metrics.json",
+    ap.add_argument("--save-json", default="Student/results/eval_metrics.json",
                     help="Optional path to save metrics as JSON.")
-    ap.add_argument("--save-vis-dir", default="/home/aryan_s2/Detection_with_Distillation/Student/results/visualizations",
+    ap.add_argument("--save-vis-dir", default="Student/results/visualizations",
                     help="Optional output folder to save sample images with GT+pred boxes.")
     ap.add_argument("--save-vis-n", type=int, default=5,
                     help="How many images to export to --save-vis-dir (0 disables).")
@@ -650,7 +649,7 @@ def main():
     model, device = load_student_from_checkpoint(
         checkpoint_path=args.checkpoint,
         num_classes=args.num_classes,
-        include_p2=args.include_p2,
+        include_p2=not args.no_p2,
         use_transformer_neck=not args.no_transformer,
         device=args.device,
     )
@@ -697,7 +696,7 @@ def main():
         iou_nms=args.iou_nms,
         device=device,
         class_names=args.class_names,
-        include_p2=args.include_p2,
+        include_p2=not args.no_p2,
         save_vis_dir=args.save_vis_dir,
         save_vis_n=args.save_vis_n,
     )

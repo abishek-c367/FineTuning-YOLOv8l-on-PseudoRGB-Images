@@ -1,0 +1,188 @@
+{
+  "env": {
+    "python": "3.10.12",
+    "torch": "2.6.0+cu124",
+    "cuda_available": true,
+    "cuda_version": "12.4",
+    "gpu": "NVIDIA GeForce RTX 2080 Ti",
+    "time": "2026-10-15T21:34:30",
+    "ultralytics": "8.4.178",
+    "student_repo_commit": "06e70f45c5da35f5d4474a7eacab4495a7dcdca8",
+    "zer0_repo_commit": "7948bd6aa8fe9139a8779f09190e821d900969f6"
+  },
+  "loss_history": [
+    [
+      0,
+      23.849483489990234,
+      {
+        "box_loss": 3.0634,
+        "cls_loss": 4.6833,
+        "dfl_loss": 4.178
+      }
+    ],
+    [
+      25,
+      3.125896692276001,
+      {
+        "box_loss": 0.2467,
+        "cls_loss": 0.3961,
+        "dfl_loss": 0.9202
+      }
+    ],
+    [
+      50,
+      1.8195606470108032,
+      {
+        "box_loss": 0.0735,
+        "cls_loss": 0.1552,
+        "dfl_loss": 0.6811
+      }
+    ],
+    [
+      75,
+      1.7294325828552246,
+      {
+        "box_loss": 0.0717,
+        "cls_loss": 0.1281,
+        "dfl_loss": 0.6649
+      }
+    ],
+    [
+      100,
+      1.6033198833465576,
+      {
+        "box_loss": 0.0489,
+        "cls_loss": 0.0938,
+        "dfl_loss": 0.659
+      }
+    ],
+    [
+      125,
+      1.5810579061508179,
+      {
+        "box_loss": 0.0481,
+        "cls_loss": 0.0906,
+        "dfl_loss": 0.6518
+      }
+    ],
+    [
+      150,
+      1.5365642309188843,
+      {
+        "box_loss": 0.0413,
+        "cls_loss": 0.0744,
+        "dfl_loss": 0.6526
+      }
+    ],
+    [
+      175,
+      1.5254019498825073,
+      {
+        "box_loss": 0.0413,
+        "cls_loss": 0.0695,
+        "dfl_loss": 0.652
+      }
+    ],
+    [
+      200,
+      1.5165529251098633,
+      {
+        "box_loss": 0.042,
+        "cls_loss": 0.0629,
+        "dfl_loss": 0.6534
+      }
+    ],
+    [
+      225,
+      1.5181257724761963,
+      {
+        "box_loss": 0.0428,
+        "cls_loss": 0.0649,
+        "dfl_loss": 0.6514
+      }
+    ],
+    [
+      250,
+      1.5199060440063477,
+      {
+        "box_loss": 0.0415,
+        "cls_loss": 0.0664,
+        "dfl_loss": 0.6521
+      }
+    ],
+    [
+      275,
+      1.4930235147476196,
+      {
+        "box_loss": 0.0357,
+        "cls_loss": 0.0597,
+        "dfl_loss": 0.6511
+      }
+    ],
+    [
+      299,
+      1.460803508758545,
+      {
+        "box_loss": 0.0312,
+        "cls_loss": 0.0508,
+        "dfl_loss": 0.6484
+      }
+    ]
+  ],
+  "decoder_metrics_py": {
+    "0": [
+      {
+        "gt_cls": 0,
+        "best_iou": 0.9946591258049011,
+        "pred_cls": 0,
+        "conf": 0.9939777851104736,
+        "n_dets": 2
+      },
+      {
+        "gt_cls": 1,
+        "best_iou": 0.9960307478904724,
+        "pred_cls": 1,
+        "conf": 0.9990216493606567,
+        "n_dets": 2
+      }
+    ],
+    "1": [
+      {
+        "gt_cls": 2,
+        "best_iou": 0.9971118569374084,
+        "pred_cls": 2,
+        "conf": 0.994929313659668,
+        "n_dets": 1
+      }
+    ]
+  },
+  "decoder_evaluate_thermal_py": {
+    "0": [
+      {
+        "gt_cls": 0,
+        "best_iou": 0.9946591258049011,
+        "pred_cls": 0,
+        "conf": 0.9939777851104736,
+        "n_dets": 2
+      },
+      {
+        "gt_cls": 1,
+        "best_iou": 0.9960307478904724,
+        "pred_cls": 1,
+        "conf": 0.9990216493606567,
+        "n_dets": 2
+      }
+    ],
+    "1": [
+      {
+        "gt_cls": 2,
+        "best_iou": 0.9971118569374084,
+        "pred_cls": 2,
+        "conf": 0.994929313659668,
+        "n_dets": 1
+      }
+    ]
+  },
+  "verdict_loss_decreased": true,
+  "verdict_all_gt_recovered_iou50_cls_ok": true
+}

@@ -1,0 +1,139 @@
+From 575816dd38e5f523b8f1351bd394e58344aa3753 Mon Sep 17 00:00:00 2001
+From: Ganesh Shiwakoti <133992568+Singati2@users.noreply.github.com>
+Date: Thu, 15 Oct 2026 22:09:13 -0400
+Subject: [PATCH 6/7] One class-index convention (bicycle, car, person) across
+ dataset, teacher fine-tune and coco2yolo (audit C6)
+
+---
+ Teacher/finetune_yolov8l.py |  2 +-
+ coco2yolo.py                | 86 +++++++++++++++++++++----------------
+ data/flir_dataset.py        |  7 +++
+ 3 files changed, 58 insertions(+), 37 deletions(-)
+
+diff --git a/Teacher/finetune_yolov8l.py b/Teacher/finetune_yolov8l.py
+index 5babb62..81b183e 100644
+--- a/Teacher/finetune_yolov8l.py
++++ b/Teacher/finetune_yolov8l.py
+@@ -18,7 +18,7 @@ DATASET_ROOT = ''
+ MODEL_WEIGHTS = ''
+ OUTPUT_DIR = ''
+ 
+-CLASS_NAMES = ['person', 'car', 'bicycle'] 
++CLASS_NAMES = ['bicycle', 'car', 'person']   # audit C6: same order as data/flir_dataset.CLASSES
+ 
+ #Training hyperparameters
+ 
+diff --git a/coco2yolo.py b/coco2yolo.py
+index e013007..f848536 100644
+--- a/coco2yolo.py
++++ b/coco2yolo.py
+@@ -1,37 +1,51 @@
+-# convert_coco_to_yolo.py
+-import json
+-from pathlib import Path
+-
+-coco_json   = "C:\Project\Project_Detection\FLIR_ADAS_v2\images_thermal_val\coco.json"
+-output_dir  = Path("C:\Project\Project_Detection\FLIR_ADAS_v2\images_thermal_val\labels_thermal_val")
+-output_dir.mkdir(exist_ok=True)
+-
+-with open(coco_json) as f:
+-    coco = json.load(f)
+-
+-# Build image_id → filename map
+-img_map = {img["id"]: img for img in coco["images"]}
+-
+-# Build image_id → list of annotations
+-from collections import defaultdict
+-ann_map = defaultdict(list)
+-for ann in coco["annotations"]:
+-    ann_map[ann["image_id"]].append(ann)
+-
+-# Write one .txt per image
+-for img_id, img_info in img_map.items():
+-    W, H = img_info["width"], img_info["height"]
+-    stem = Path(img_info["file_name"]).stem
+-    lines = []
+-    for ann in ann_map[img_id]:
+-        x, y, w, h = ann["bbox"]          # COCO: top-left x,y + w,h (absolute)
+-        cx = (x + w / 2) / W              # normalise to [0,1]
+-        cy = (y + h / 2) / H
+-        nw = w / W
+-        nh = h / H
+-        cls_id = ann["category_id"] - 1   # COCO is 1-indexed → 0-indexed
+-        lines.append(f"{cls_id} {cx:.6f} {cy:.6f} {nw:.6f} {nh:.6f}")
+-    with open(output_dir / f"{stem}.txt", "w") as f:
+-        f.write("\n".join(lines))
+-
++# convert_coco_to_yolo.py
++import json
++from pathlib import Path
++
++import sys
++# audit C6: previously wrote category_id-1 for ALL 15 FLIR classes (person 0, bike 1, car 2, ..., sign 9)
++# while the training scripts use nc=3; Ultralytics rejects any image with a label id >= nc.
++coco_json   = sys.argv[1] if len(sys.argv) > 1 else "FLIR_ADAS_v2/images_thermal_val/coco.json"
++output_dir  = Path(sys.argv[2] if len(sys.argv) > 2 else "FLIR_ADAS_v2/images_thermal_val/labels_thermal_val")
++CLASSES = ("bicycle", "car", "person")          # must match data/flir_dataset.CLASSES
++ALIASES = {"bike": "bicycle"}
++output_dir.mkdir(exist_ok=True)
++
++with open(coco_json) as f:
++    coco = json.load(f)
++
++# category_id -> class index (only the 3 allowed classes)
++cat_to_cls = {}
++for c in coco["categories"]:
++    name = ALIASES.get(c["name"], c["name"])
++    if name in CLASSES:
++        cat_to_cls[c["id"]] = CLASSES.index(name)
++
++# Build image_id → filename map
++img_map = {img["id"]: img for img in coco["images"]}
++
++# Build image_id → list of annotations
++from collections import defaultdict
++ann_map = defaultdict(list)
++for ann in coco["annotations"]:
++    ann_map[ann["image_id"]].append(ann)
++
++# Write one .txt per image
++for img_id, img_info in img_map.items():
++    W, H = img_info["width"], img_info["height"]
++    stem = Path(img_info["file_name"]).stem
++    lines = []
++    for ann in ann_map[img_id]:
++        x, y, w, h = ann["bbox"]          # COCO: top-left x,y + w,h (absolute)
++        cx = (x + w / 2) / W              # normalise to [0,1]
++        cy = (y + h / 2) / H
++        nw = w / W
++        nh = h / H
++        if ann.get("iscrowd", 0) or ann["category_id"] not in cat_to_cls:
++            continue
++        cls_id = cat_to_cls[ann["category_id"]]
++        lines.append(f"{cls_id} {cx:.6f} {cy:.6f} {nw:.6f} {nh:.6f}")
++    with open(output_dir / f"{stem}.txt", "w") as f:
++        f.write("\n".join(lines))
++
+ print(f"Done. Labels written to: {output_dir}")
+\ No newline at end of file
+diff --git a/data/flir_dataset.py b/data/flir_dataset.py
+index 6ce4ffd..24796ad 100644
+--- a/data/flir_dataset.py
++++ b/data/flir_dataset.py
+@@ -10,6 +10,13 @@ import torch
+ from torch.utils.data import Dataset
+ 
+ 
++# Single source of truth for the 3-class protocol (audit C6). Class index = position in CLASSES.
++# NOTE: FlirThermalCocoDataset sorts allowed names alphabetically, so the effective order is
++# bicycle=0, car=1, person=2; CLASSES below is written in that order to make it explicit.
++CLASSES = ("bicycle", "car", "person")
++FLIR_CATEGORY_NAME_ALIASES = {"bike": "bicycle"}
++
++
+ @dataclass(frozen=True)
+ class FlirCocoPaths:
+     images_dir: Path
+-- 
+2.34.1
+

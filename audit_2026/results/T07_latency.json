@@ -1,0 +1,40 @@
+{
+  "env": {
+    "python": "3.10.12",
+    "torch": "2.6.0+cu124",
+    "cuda_available": true,
+    "cuda_version": "12.4",
+    "gpu": "NVIDIA GeForce RTX 2080 Ti",
+    "time": "2026-10-15T21:23:52",
+    "ultralytics": "8.4.178",
+    "student_repo_commit": "373dbdd7c2ff6c8e29f93bcbbb4fe4880c65b519",
+    "zer0_repo_commit": "7948bd6aa8fe9139a8779f09190e821d900969f6"
+  },
+  "latency_ms_b1_512": {
+    "s_P3P4P5_noViT": {
+      "ms": 25.19,
+      "params_M": 21.35
+    },
+    "s_P2_noViT (trained config)": {
+      "ms": 29.65,
+      "params_M": 21.5
+    },
+    "s_P2_ViT": {
+      "ms": 35.51,
+      "params_M": 22.29
+    },
+    "cyclegan_generator_(train_only)": {
+      "ms": 35.91,
+      "params_M": 11.38
+    },
+    "yolov8l_teacher_(train_only)": {
+      "ms": 42.7,
+      "params_M": 43.69
+    },
+    "ultralytics_yolov8s_reference": {
+      "ms": 26.03,
+      "params_M": 11.17
+    }
+  },
+  "note": "fp32, eval, no NMS/decoding, cudnn.benchmark=True, 50 warmup + 200 timed iters, batch=1, 512x512, RTX 2080 Ti with other CPU jobs running"
+}

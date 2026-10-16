@@ -342,11 +342,11 @@ class DistillationTrainer:
         self._cache_index = 0          # tracks position across batches
 
         if self.use_cache:
-            # Pre-build sorted list of all cached .png files for fast lookup
-            self._cache_files = sorted([
-                f for f in os.listdir(root_dir)
-                if f.endswith(".png")
-            ])
+            # Pre-build sorted list of all cached .png files (recursive; FLIR names carry a data/ prefix)
+            self._cache_files = sorted(
+                os.path.relpath(os.path.join(r, f), pseudo_rgb_cache_dir)
+                for r, _, fs in os.walk(pseudo_rgb_cache_dir) for f in fs if f.endswith(".png")
+            )
             print(f"✓ Pseudo-RGB cache enabled: {len(self._cache_files)} files "
                   f"in '{pseudo_rgb_cache_dir}'")
         else:
@@ -463,7 +463,7 @@ class DistillationTrainer:
 
         return batch_tensor
 
-    def _generate_pseudo_rgb(self, file_name: List[str]) -> torch.Tensor:
+    def _generate_pseudo_rgb(self, file_name: Optional[List[str]], thermal: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
         _generate_pseudo_rgb(self, thermal: torch.Tensor) -> torch.Tensor:
         Generate pseudo-RGB from thermal.
@@ -472,25 +472,22 @@ class DistillationTrainer:
         returns: (B, 3, H, W) in [0, 1]
         """
         # ── Try cache first ───────────────────────────────────
-        if self.use_cache:
-            cached = self._load_pseudo_rgb_from_cache(file_name, self.pseudo_rgb_cache_dir, self.device)
-            if cached is not None:
-                return cached          # instant — no CycleGAN call at all
-        # ─────────────────────────────────────────────────────
-
-        # ── Fallback: live CycleGAN generation ───────────────
-        '''
+        if self.use_cache and file_name is not None:
+            try:
+                return self._load_pseudo_rgb_from_cache(file_name, self.pseudo_rgb_cache_dir, self.device)
+            except FileNotFoundError:
+                if thermal is None:
+                    raise
+        # ── Fallback: live CycleGAN generation (audit C3: was dead code inside a string literal) ──
+        if thermal is None:
+            raise ValueError("No cache hit and no thermal tensor given for live CycleGAN generation.")
         with torch.no_grad():
-            thermal_3ch = thermal.repeat(1, 3, 1, 1)
-            device = thermal_3ch.device
-            mean = torch.tensor([0.5, 0.5, 0.5], device=device).view(1, 3, 1, 1)
-            std = torch.tensor([0.5, 0.5, 0.5], device=device).view(1, 3, 1, 1)
-            thermal_normalized = (thermal_3ch - mean) / std
-            pseudo_rgb = self.cyclegan_generator(thermal_normalized)
-            pseudo_rgb = (pseudo_rgb + 1) / 2
+            thermal_3ch = thermal.to(self.device).repeat(1, 3, 1, 1)
+            mean = torch.tensor([0.5, 0.5, 0.5], device=self.device).view(1, 3, 1, 1)
+            std = torch.tensor([0.5, 0.5, 0.5], device=self.device).view(1, 3, 1, 1)
+            pseudo_rgb = self.cyclegan_generator((thermal_3ch - mean) / std)
+            pseudo_rgb = ((pseudo_rgb + 1) / 2).clamp(0, 1)
         return pseudo_rgb
-        # ─────────────────────────────────────────────────────
-        '''
     def parse_output(self, preds):
         # preds = [P3, P4, P5], each [B, 67, H, W]
         feats = preds[1:]
@@ -596,7 +593,7 @@ class DistillationTrainer:
         self.student.train()
     
         # ── Pseudo-RGB (cache or live CycleGAN) ──────────────────────────────────
-        pseudo_rgb = self._generate_pseudo_rgb(file_name)
+        pseudo_rgb = self._generate_pseudo_rgb(file_name, thermal_batch)
     
         # ── Teacher features (frozen) ─────────────────────────────────────────────
         with torch.no_grad():
@@ -699,7 +696,7 @@ class DistillationTrainer:
                 }
             
             # Generate pseudo-RGB
-            pseudo_rgb = self._generate_pseudo_rgb(thermal_batch)
+            pseudo_rgb = self._generate_pseudo_rgb(None, thermal_batch)
             
             # Get features
             try:

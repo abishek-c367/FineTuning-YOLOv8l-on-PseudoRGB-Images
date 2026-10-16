@@ -10,6 +10,13 @@ import torch
 from torch.utils.data import Dataset
 
 
+# Single source of truth for the 3-class protocol (audit C6). Class index = position in CLASSES.
+# NOTE: FlirThermalCocoDataset sorts allowed names alphabetically, so the effective order is
+# bicycle=0, car=1, person=2; CLASSES below is written in that order to make it explicit.
+CLASSES = ("bicycle", "car", "person")
+FLIR_CATEGORY_NAME_ALIASES = {"bike": "bicycle"}
+
+
 @dataclass(frozen=True)
 class FlirCocoPaths:
     images_dir: Path
