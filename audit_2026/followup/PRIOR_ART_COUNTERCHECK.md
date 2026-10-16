@@ -1,0 +1,87 @@
+# PRIOR-ART COUNTER-CHECK OF THE 16 OCT 2026 ROADMAP (Tracks A to E)
+
+Method: two literature agents (16 Oct 2026) with WebSearch/WebFetch, each told to report only pages actually opened; their reports were spot-checked by the author of this file. "Opened" means the abstract, HTML or PMC full text was read. Numbers are quoted from the opened page; anything from a search snippet only is marked UNVERIFIED. The 15 Oct matrix (`audit/PRIOR_ART_NOVELTY_MATRIX.md`) remains the base; this file adds what the roadmap's tracks need.
+
+Classification used throughout: **published fact** (opened source), **code-observed** (this machine), **smoke-test outcome** (synthetic batches, `results/`), **hypothesis**, **detector experiment** (none exist yet).
+
+## Track A: when does an unpaired pseudo-RGB teacher help or harm?
+
+Controls key: (1) no teacher; (2) thermal-trained teacher, same large architecture; (3) COCO RGB teacher fed grey-replicated thermal; (4) CycleGAN pseudo-RGB teacher.
+
+| Work | Opened | Setting | Controls | Key numbers | Coverage |
+|---|---|---|---|---|---|
+| Borrow from Anywhere, Devaguptapu et al., CVPRW 2019, arXiv 1905.08789 | abstract + full PDF | Not KD: two-branch Faster R-CNN with a COCO/VOC RGB branch fed CycleGAN or UNIT pseudo-RGB; translation runs at test time. FLIR ADAS 2018 (bicycle/person/car), mAP@0.5. Code: github.com/tdchaitanya/MMTOD | (1) yes; (2) no; (3) no; (4) as a fused input branch | thermal-only 53.97; +UNIT (COCO) 61.54; +CycleGAN (COCO) 61.40; KAIST 49.39 vs 53.56. Single runs. | little: no KD, no teacher-modality ablation |
+| CGDet, Kim & An, arXiv 2511.01435 (Nov 2025) | abstract, HTML, PDF | Frozen RGB-pretrained teacher (architecture and pretraining set not stated) → MobileNetV2 + YOLOX-head student. Student input is thermal **concatenated with Pearl-GAN visible channels** (§III-C, §IV-A), while the text also claims the generated RGB is removed at inference: internally contradictory. FLIR-aligned (4,129/1,013). No code. | (1) no; (2) no; (3) no; (4) no (translator feeds the student) | mAP50/75/mAP: 82.8/47.2/47.1 vs TIRDet 81.4/41.1/44.3 vs YOLOX-L 80.9/37.5/42.0. Single run, no ablations. | closest in spirit, zero controls |
+| FreqKD, Thaker et al., arXiv 2606.11572 (June 2026) | abstract + HTML | Frozen DINOv2 ViT-L teacher on **real paired RGB** (KAIST) → ViT-L student on thermal replicated to 3 ch. Code: anonymous.4open.science. | (1) yes; (2) partial (same-arch R50→R50 KD row, teacher modality unstated); (3) no; (4) no | KAIST mAP50: no-KD 61.7; feature-MSE KD **61.1**; response KD **58.8**; FreqKD 64.1; RGB-on-RGB reference 68.0. FLIR transfer 70.5 → 72.6. No seeds. | supplies the only quantitative "RGB teacher hurts" rows; needs pixel-paired RGB |
+| InfraNet, Feng et al., arXiv 2607.03795 (July 2026) | abstract + HTML | Joint training with a quality-gated auxiliary RGB pathway (privileged, paired); IR-only inference. LLVIP, FLIR-aligned, M3FD. | (1) yes; (2) no; (3) no; (4) a HalluciDet-style pseudo-RGB variant on LLVIP (95.2/64.9 vs 97.3/68.8) | M3FD 84.8/57.2 → 86.2/59.0. No seeds. | adjacent |
+| Thermal-Det, Ranasinghe et al., CVPR 2026, arXiv 2605.10130 | abstract + HTML | Frozen Grounding DINO RGB teacher on paired unlabeled RGB-thermal → thermal Grounding DINO; open-vocabulary. | (1) partial (−L_KD ablation); (2), (3), (4) no; teacher architecture varied, never teacher modality | FLIR-aligned AP 0.200 → 0.261. | different problem |
+| HalluciDet, WACV 2024, arXiv 2310.04662; ModTr, ECCV 2024, arXiv 2404.01492 | HTML | Frozen COCO detectors fed raw IR vs CycleGAN pseudo-RGB vs learned translators; **with seeds**. | (3) and (4) realised as detectors, not teachers | LLVIP Faster R-CNN AP50: CycleGAN 38.9 ± 5.1, inversion 71.8, raw IR no-adaptation 71.5 ± 1.2; FLIR-aligned AP: CycleGAN 26.85, hist-eq 24.61, fine-tune 30.93, ModTr 37.21. | predicts arm (4) gives a weaker teacher than arm (3) |
+| Yoon, Park, Paik, IEEE Access, DOI 10.1109/ACCESS.2025.3650060 | **abstract only** (Xplore blocked) | LoRA-tuned thermal-to-visible generator → pseudo-RGB and latent features distilled (MMD + response) into a thermal-only student; FLIR-aligned + LLVIP; student 40.4 % mAP on FLIR. | UNVERIFIED | — | **the single closest prior work to arm (4); must be read in full before any novelty claim** |
+| DecomKD (ACM MM 2025), TIRDet (ACM MM 2023), MLCM-KD (arXiv 2510.11128), Desta et al. (NeurIPS 2024 affinity poster) | abstracts / README | RGB-T fusion teacher; Pearl-GAN inside the detector; landmarks; RGB features → thermal detector on FLIR | UNVERIFIED | — | context |
+
+**FLIR ADAS v2 pairing (README at adas-dataset-v2.flirconservator.com, read in full):** 9,233 visible + 9,711 thermal still images (train/val) and 3,749 time-synced video pairs; "each video frame in one spectrum is mapped to its time-synced frame pair in the other spectrum" via `rgb_to_thermal_vid_map.json`; Tau 2 13 mm (45° HFOV) and BlackFly S (52.8° HFOV); no statement of spatial registration; still-image counts differ, so stills are not 1:1 paired. Zhang et al. ICIP 2020 (arXiv 2009.12664, PDF read) removed misaligned pairs to obtain the 4,129/1,013 "FLIR-aligned" subset used by CGDet, HalluciDet, ModTr and InfraNet. So: RGB exists, time-synchronised, **not pixel-aligned**; roadmap arm 5 stays conditional on the aligned subset.
+
+**Verdict A: not published, but the prior evidence predicts a null or negative result.** No opened paper ablates the teacher's input modality or includes a thermal-trained same-architecture teacher; controls (2) and (3) appear nowhere. The pieces exist separately (Borrow from Anywhere, CGDet, FreqKD, HalluciDet/ModTr), and FreqKD's below-baseline KD rows plus HalluciDet/ModTr's CycleGAN-below-raw-IR rows predict arm (4) ≤ arm (3) and possibly ≤ arm (1). Track A is therefore defensible as a multi-seed, CI-bearing controls study on the full unaligned FLIR v2 set with open code (a PBVS-style workshop or short paper), not as a method paper, and not before Yoon et al. has been read in full. **Roadmap's "first priority" ranking: not supported as the main paper; supported as a bounded diagnostic for the collaborator's own pipeline.**
+
+## Track B: translation artefacts and object preservation
+
+| Work | Opened | What it establishes | Controls present | Coverage of Track B |
+|---|---|---|---|---|
+| PearlGAN, Luo et al., arXiv 2104.14374 | ar5iv full text | Night-TIR to day-colour translation on FLIR and KAIST evaluated with a Cityscapes segmenter (mIoU), COCO YOLOv4 person AP and an edge-preservation metric. Quoted: CycleGAN, MUNIT, UGATIT, DRIT++, ForkGAN "fail to generate plausible pedestrians"; CycleGAN, ToDayGAN, ForkGAN "fail to maintain distant cars"; edges "expand outward or contract inward". Person AP on translated FLIR: CycleGAN 17.8, MUNIT 29.5, PearlGAN 54.0; KAIST pedestrian mAP original 44.2 vs best translation 25.8. | seven translators, detector on translated output | HIGH for the failure-mode half (pedestrian erasure, distant-object loss, boundary shift of CycleGAN on FLIR are published with a detector) |
+| HalluciDet, Medeiros et al., WACV 2024, arXiv 2310.04662 | arXiv HTML | IR to RGB "hallucination" trained on the frozen RGB detector's loss; LLVIP and FLIR (person). LLVIP Faster R-CNN AP50: CycleGAN 38.92, CUT 35.17, FastCUT 67.73, image inversion 71.83, HalluciDet 88.34. CycleGAN "introduces significant noise ... increase in false positives". | translation front-ends vs inversion vs fine-tuning | MEDIUM: CycleGAN is a worse detection front-end on FLIR than inverting the image; no size- or boundary-stratified analysis |
+| ModTr, Medeiros et al., ECCV 2024, arXiv 2404.01492 | arXiv HTML | Small translator trained on detection loss; FLIR Aligned Faster R-CNN AP: HistEq 24.61, CycleGAN 26.85, CUT 20.29, FastCUT 26.68, HalluciDet 29.91, fine-tuning 30.93, ModTr 37.21. | same group, same message | MEDIUM |
+| IMST, Chen et al., arXiv 2404.07072 | arXiv HTML | VIS to IR direction; qualitative: CycleGAN/MUNIT outputs "marred by the inclusion of irrelevant human silhouettes". | — | LOW (wrong direction, qualitative) |
+| FoalGAN, Luo et al., arXiv 2310.15688 | abstract | Small-object classes in night-TIR to colour translation explicitly targeted (Brno dataset). | — | LOW-MEDIUM |
+| SC-Diff, arXiv 2608.08555 (Aug 2026) | search snippet only | VIS to IR diffusion claiming structure preservation reduces missed detections. | — | UNVERIFIED |
+
+**Verdict B: partly occupied.** The descriptive half of the track (CycleGAN erases small pedestrians and distant cars on FLIR, shifts edges, and scores far below even trivial inversion as a detection front-end) is published with numbers. Open: a size-stratified and boundary-level attribution of errors to translation artefacts, and the propagation of those errors into a KD teacher's targets; no opened paper analyses a teacher trained on or fed with CycleGAN output. Track B is defensible only as the diagnostic "why the teacher is wrong" companion to Track A, never alone, and must cite PearlGAN, HalluciDet and ModTr as having established that CycleGAN is a known-bad front-end. **Roadmap claim "unexplored": refuted in part.**
+
+## Track C: P2 head and transformer neck for small thermal targets
+
+| Work | Opened | What it establishes | AP_small | Coverage |
+|---|---|---|---|---|
+| YOLO-APDM, Sensors 24(20):7197, 2024 (PMC11598205) | PMC full text | YOLOv8n on FLIR ADAS v2 (8 classes): baseline mAP50 0.573 / mAP50-95 0.341; reconstructed neck + P2 head 0.626 / 0.377; full model 0.639 / 0.391. Attention is MSCA after SPPF, not a transformer neck. | not reported | HIGH: "P2 on YOLOv8 helps on FLIR v2" is published |
+| MDCFVit-YOLO, PLOS ONE 20(6):e0324700, 2025 (PMC12173352) | PMC full text | YOLOv8n + RepViT (a CNN despite the name) on FLIR v2 thermal subset: mAP50 0.606 to 0.67; params 6.2 M to 20.9 M; notes ~87 % of val boxes < 32×32. No P2. | not reported | MEDIUM |
+| LFIR-YOLO, Sensors 24(20):6609, 2024 (PMC11511348) | PMC full text | YOLOv8n with attention fusion neck on FLIR v2 (5 classes, re-split): mAP50 74.6 to 78.9. No P2. | not reported | MEDIUM |
+| CRT-YOLO, arXiv 2505.10825 | arXiv HTML | YOLOv8 + EMA attention + centralised feature pyramid (MHSA replaced by an MLP) on FLIR aligned: mAP50 76.3 to 79.6; LLVIP 93.9 to 95.1. | not reported | MEDIUM |
+| SEA-YOLO, Canadian AI 2026, PMLR 318 | PMLR abstract | Edge attention in the YOLOv8 backbone on thermal driving sets. ACM snippet claims P2 + P4 modules on YOLOv8m (53.38 vs 51.11 mAP50). | — | UNVERIFIED |
+| TCNet, RA-L 2024, arXiv 2410.18340 | arXiv HTML | The only opened source with AP_small on FLIR ADAS v2: YOLOX with FLIR AGC input mAP 53.5 / AP50 81.4 / AP_small 45.8; TCNet 56.0 / AP_small 47.8. | yes | gives the AP_small baseline |
+
+**Verdict C: largely occupied.** The headline claim is published. The narrow gap (no AP_small, no per-class person/bicycle AP, no clean P2-vs-transformer-neck ablation on FLIR v2 under one recipe) is an ablation, not a contribution. Track C is worth running only as a control inside another track. **Roadmap's own caution ("adding these modules alone is not novel") confirmed.**
+
+## Track D: enhancement oracle headroom before any router
+
+| Work | Opened | What it establishes | Oracle reported | Coverage |
+|---|---|---|---|---|
+| Awad et al., J. Imaging 12(1):18, 2026 (PMC12842599) | PMC full text | Underwater; YOLO-NAS; 9 enhancers; per-image mAP50-95 oracle: CUPDD original 0.41, best single 0.39, oracle 0.64; RUOD 0.68 / 0.68 / 0.77. Every single enhancer ≤ identity, oracle +0.09 to +0.23. | yes | HIGH for the protocol, not thermal |
+| AMIEOD, arXiv 2605.06084 (May 2026) | arXiv HTML | ExDark, YOLOv3; per-image selector over original / SCI / IA-YOLO experts trained from detection-loss labels: original 81.9, best single 82.0, learned selector 82.1 mAP. No oracle. | no | MEDIUM: realised routing gain 0.1 mAP |
+| TCNet (Thermal Chameleon), RA-L 2024 | arXiv HTML | Fixed 14-bit to 8-bit maps on FLIR ADAS v2: YOLOX mAP AGC 53.5, clip 49.1, HE 40.7, min-max 50.8, raw 37.9, TCNet 56.0; ranking flips by detector (HE best for Sparse R-CNN, worst for YOLOX). No per-image oracle. | no | MEDIUM-HIGH for fixed-enhancer sweeps on FLIR v2 from counts |
+| Karam et al. (Lynred), arXiv 2407.04484 | arXiv HTML | YOLOv4-tiny; Lynred VRU, FLIR ADAS v2, CVC-14; raw IR 5.97 AP vs corrected 51.79; spatial denoising hurts AP (−3, −13, −19) despite better visual quality; destriping +1 to +3. | no | MEDIUM: "nicer" thermal preprocessing can lower AP |
+| GDIP, arXiv 2209.14922 | abstract | Gated parallel differentiable enhancers trained through detection loss; visible fog/low-light only. | no | LOW: the gate precedent |
+| BioDet, arXiv 2510.21000 | opened | Industrial; brightness-gated low-light enhancer gives +0.1/+0.2 AP. | no | a "fixed enhancer gives nothing" datapoint, not thermal |
+
+**Verdict D: open for thermal.** No opened paper computes a per-image enhancement oracle on thermal data, and none reports the oracle gain being small; the only published oracle gains are large (underwater) while the only published learned-router gain is about 0.1 mAP (ExDark). On FLIR v2 with identity / gamma / CLAHE / dehaze on a frozen YOLOv8-s this is cheap (inference only, no training, CPU bootstrap) and would settle whether a weather gate has any headroom at all. It must use the seed-split / cross-fit oracle correction already written in `audit/MATH_STAT_REVIEW.md` (naive per-image oracle harvests prediction churn). **Roadmap's "do this before training a weather gate": supported; it is the one track that can start the day the data arrives and finish in under a GPU-day.**
+
+## Track E: temporal consistency across thermal video
+
+| Work | Opened | What it establishes | Thermal / AGC | Coverage |
+|---|---|---|---|---|
+| Stability Index, Wang et al., ECCV 2024, arXiv 2407.04305 | arXiv HTML | SI = confidence term × mean(location, extent, heading) over matched consecutive-frame pairs; uncorrelated with mAPH; consistency fine-tuning raises SI 80.5 to 86.0 (Waymo, 3D). | no | HIGH for the metric |
+| Zhang & Wang, arXiv 1611.06467 | abstract | Fragment, centre and scale errors for 2D video detection; stability uncorrelated with mAP. | no | metric precedent |
+| Sun et al., arXiv 2606.01694 (June 2026) | arXiv HTML | PBVS TP-MOT thermal pedestrian benchmark (FLIR ADK, 30 sequences); YOLOv8 + SORT; MOTA/IDF1 only; "brief detector interruptions" attributed to temperature ambiguity, truncation, low SNR. | thermal, no AGC | LOW-MEDIUM |
+| Das et al., RA-L 2021, arXiv 2012.14292 | abstract | Online photometric calibration of AGC thermal cameras for VO/SLAM. | AGC, no detection | the AGC phenomenon |
+| TCNet (as above) | arXiv HTML | States linear scaling "is preferred for tasks requiring temporal consistency" and that Fieldscale "does not preserve temporal coherence"; argued, not measured for detection. | thermal | the only link between tone map and temporal consistency |
+| COVTrack++ arXiv 2603.24016; Mishra & Lone arXiv 2606.17241 | abstracts | Flicker recovery by temporal confidence propagation; 20 to 30 % relative degradation from still to streaming evaluation (visible). | no | context |
+
+**Verdict E: open.** The metric is not novel, but no opened paper applies a confidence/box stability metric to thermal video or isolates tone-map transitions as the cause. This is exactly the gated secondary S1 of the RAW-penalty matrix; the roadmap's "keep it secondary" is supported. The literature agent's caveat that FLIR ADAS v2 does not ship count-level frames is **wrong**: the vendor page lists 14-bit TIFF (no AGC) alongside the 8-bit AGC JPEG (`CURRENT_STATE_AND_BLOCKERS.md` §2b); the bit depth of the container is a day-1 header check (matrix F1).
+
+## Corrections to earlier assertions
+
+- 15 Oct matrix row for CGDet stated "GAN visible → frozen RGB teacher"; the opened text shows the Pearl-GAN output feeds the **student** input, the teacher's input is unstated, and the paper is internally inconsistent about test-time use. Corrected here.
+- 15 Oct matrix treated FLIR ADAS v2 RGB as "loosely paired"; the README confirms time-synced video pairs with a mapping file and no spatial registration; stills are not 1:1.
+
+- 15 Oct audit, Track B wording "unexplored": wrong; PearlGAN, HalluciDet and ModTr already quantify CycleGAN's object loss on FLIR. Corrected here.
+- Council record §3.1 row for Lynred (arXiv 2407.04484): the "uint16 to fp32 unusable" quote remains **unconfirmed**; the opened HTML gives raw-IR AP 5.97 vs corrected 51.79 for YOLOv4-tiny, which is the number to cite.
+- TCNet's FLIR table is now **confirmed from the opened HTML** (Table II, mAP / mAP@0.5): YOLOX AGC 53.5/81.4, clip 49.1/75.4, HE 40.7/64.9, min-max 50.8/81.6, RAW 37.9/63.3, TCNet 56.0/83.8; RetinaNet AGC 25.2, RAW 20.1; Sparse R-CNN AGC 37.5, RAW 12.3. The paper defines RAW as "linear rescaling with 2^14−1" and never states the input dtype or how the AGC row was produced, which is exactly the ambiguity the RAW-penalty paper tests.
+- Fieldscale (arXiv 2405.15395, opened HTML, Table IV, COCO AP): YOLOX-M AGC 48.4, min-max 47.0, Fieldscale 49.1; ATSS 44.6 / 44.6 / 46.6; Sparse R-CNN 41.4 / 40.6 / 42.9; Cascade R-CNN 44.1 / 43.6 / 46.5; AGC available only on FLIR-Val; no seeds. Confirms the draft's "1.4-point single-run gap" figure.
+- Roadmap §2 "FLIR v2 does not provide per-frame weather labels": consistent with the 15 Oct matrix; no new source contradicts it.

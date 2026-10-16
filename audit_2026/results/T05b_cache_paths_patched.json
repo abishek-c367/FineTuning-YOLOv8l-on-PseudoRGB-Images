@@ -1,0 +1,37 @@
+{
+  "env": {
+    "python": "3.10.12",
+    "torch": "2.6.0+cu124",
+    "cuda_available": false,
+    "cuda_version": "12.4",
+    "gpu": null,
+    "time": "2026-10-16T01:11:59",
+    "ultralytics": "8.4.178",
+    "student_repo_commit": "cc9576112ec960171feb789730ec584c749c223b",
+    "zer0_repo_commit": "7948bd6aa8fe9139a8779f09190e821d900969f6"
+  },
+  "branch": null,
+  "skip_before_write": false,
+  "listing_is_relative_with_subdir": true,
+  "skip_after_write": true,
+  "loader_finds_writer_file": [
+    1,
+    3,
+    4,
+    4
+  ],
+  "cache_miss_no_thermal": "FileNotFoundError",
+  "no_cache_no_thermal": "ValueError",
+  "no_cache_with_thermal_fallback": {
+    "shape": [
+      2,
+      3,
+      8,
+      8
+    ],
+    "min": 0.12522634863853455,
+    "max": 0.8793450593948364
+  },
+  "validate_step_passes_thermal_tensor": true,
+  "all_pass": true
+}

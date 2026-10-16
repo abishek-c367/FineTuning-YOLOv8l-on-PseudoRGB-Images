@@ -1,0 +1,16 @@
+##### test_01_loss_path.py
+exit=0
+##### test_02_overfit_one_batch.py
+exit=0
+##### test_03_metrics_vs_pycocotools.py
+exit=0
+##### test_04_checkpoint_loading.py
+exit=0
+##### test_05_cache_paths.py
+exit=1
+##### test_06_misc_edge_cases.py
+exit=0
+##### test_07_latency.py
+exit=0
+##### test_08_zer0_gate.py
+exit=0
