@@ -342,11 +342,11 @@ class DistillationTrainer:
         self._cache_index = 0          # tracks position across batches
 
         if self.use_cache:
-            # Pre-build sorted list of all cached .png files for fast lookup
-            self._cache_files = sorted([
-                f for f in os.listdir(root_dir)
-                if f.endswith(".png")
-            ])
+            # Pre-build sorted list of all cached .png files (recursive; FLIR names carry a data/ prefix)
+            self._cache_files = sorted(
+                os.path.relpath(os.path.join(r, f), pseudo_rgb_cache_dir)
+                for r, _, fs in os.walk(pseudo_rgb_cache_dir) for f in fs if f.endswith(".png")
+            )
             print(f"✓ Pseudo-RGB cache enabled: {len(self._cache_files)} files "
                   f"in '{pseudo_rgb_cache_dir}'")
         else:

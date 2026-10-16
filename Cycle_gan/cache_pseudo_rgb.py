@@ -90,12 +90,21 @@ def build_image_id_list(dataset: FlirThermalCocoDataset) -> list:
     return ids
 
 
+def list_cached_pngs(cache_dir: str) -> set:
+    """Recursively list cached PNGs as paths relative to cache_dir (FLIR file_names carry a data/ prefix)."""
+    out = set()
+    for root, _, files in os.walk(cache_dir):
+        for f in files:
+            if f.endswith(".png"):
+                out.add(os.path.relpath(os.path.join(root, f), cache_dir))
+    return out
+
+
 def cache_already_complete(cache_dir: str, dataset_len: int) -> bool:
     """Check if cache already has all files so we can skip re-generation."""
     if not os.path.exists(cache_dir):
         return False
-    existing = len([f for f in os.listdir(cache_dir) if f.endswith(".png")])
-    return existing >= dataset_len
+    return len(list_cached_pngs(cache_dir)) >= dataset_len
 
 
 def main():
@@ -163,7 +172,7 @@ def main():
         # Unpack batch — same logic as train_distillation loop
         thermal_batch, _,file_names = batch  # thermal_batch: (B, 1, H, W), files_names: list of file names
         #set of existing files in cache dir to avoid repeated os.listdir calls
-        existing_files = set(os.listdir(CACHE_DIR))
+        existing_files = list_cached_pngs(CACHE_DIR)   # audit C2: compare relative paths, not top-level names
         #Initialize lists to track which indices/files need processing
         indices_to_process = []
         filenames_to_process = []
@@ -192,6 +201,7 @@ def main():
         for local_i, cache_filename in enumerate(filenames_to_process):
 
             save_path = os.path.join(CACHE_DIR, cache_filename)
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)   # audit C2: file_name may contain 'data/'
 
             img_tensor = pseudo_rgb_batch[local_i]
 
