@@ -364,7 +364,7 @@ class DetectionMetricsAccumulator:
 
             # Parse ground truths from ultralytics_collate format
             batch_idx  = targets["batch_idx"]                   # (M,)
-            gt_cls_all = targets["cls"].squeeze(-1)             # (M,)  float
+            gt_cls_all = targets["cls"].reshape(-1)             # (M,)  float  (audit C4: squeeze(-1) breaks when M==1)
             gt_box_all = targets["bboxes"]                      # (M,4) norm xywh
 
             # Convert GT boxes: norm xywh → absolute xyxy
