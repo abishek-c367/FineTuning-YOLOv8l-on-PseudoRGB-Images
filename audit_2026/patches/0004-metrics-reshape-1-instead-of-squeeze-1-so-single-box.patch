@@ -1,0 +1,26 @@
+From 05738845b9ae284ac5841845bc1e85e4bfd93cca Mon Sep 17 00:00:00 2001
+From: Ganesh Shiwakoti <133992568+Singati2@users.noreply.github.com>
+Date: Thu, 15 Oct 2026 22:09:13 -0400
+Subject: [PATCH 4/7] metrics: reshape(-1) instead of squeeze(-1) so single-box
+ batches are not dropped (audit C4)
+
+---
+ metrics.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/metrics.py b/metrics.py
+index 47b4253..791309d 100644
+--- a/metrics.py
++++ b/metrics.py
+@@ -364,7 +364,7 @@ class DetectionMetricsAccumulator:
+ 
+             # Parse ground truths from ultralytics_collate format
+             batch_idx  = targets["batch_idx"]                   # (M,)
+-            gt_cls_all = targets["cls"].squeeze(-1)             # (M,)  float
++            gt_cls_all = targets["cls"].reshape(-1)             # (M,)  float  (audit C4: squeeze(-1) breaks when M==1)
+             gt_box_all = targets["bboxes"]                      # (M,4) norm xywh
+ 
+             # Convert GT boxes: norm xywh → absolute xyxy
+-- 
+2.34.1
+

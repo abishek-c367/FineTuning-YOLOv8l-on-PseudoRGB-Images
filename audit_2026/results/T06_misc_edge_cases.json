@@ -1,0 +1,90 @@
+{
+  "env": {
+    "python": "3.10.12",
+    "torch": "2.6.0+cu124",
+    "cuda_available": true,
+    "cuda_version": "12.4",
+    "gpu": "NVIDIA GeForce RTX 2080 Ti",
+    "time": "2026-10-15T21:33:22",
+    "ultralytics": "8.4.178",
+    "student_repo_commit": "06e70f45c5da35f5d4474a7eacab4495a7dcdca8",
+    "zer0_repo_commit": "7948bd6aa8fe9139a8779f09190e821d900969f6"
+  },
+  "one_gt_box_update": {
+    "ok": true,
+    "n_images_accumulated": 2
+  },
+  "two_gt_boxes_update": {
+    "ok": true,
+    "n_images_accumulated": 2
+  },
+  "eval_in_train_mode": {
+    "max_abs_output_diff_P3": 2.856515884399414,
+    "mean_abs_output_P3": 1.3247714042663574,
+    "running_mean_mutated": true
+  },
+  "dataset_class_map": {
+    "catid_to_classidx": {
+      "1": 2,
+      "2": 0,
+      "3": 1
+    },
+    "class_name_to_idx": {
+      "bicycle": 0,
+      "car": 1,
+      "person": 2
+    },
+    "returned_cls": [
+      2.0,
+      0.0,
+      1.0
+    ],
+    "file_name": "data/f1.jpg",
+    "img_shape": [
+      1,
+      512,
+      512
+    ]
+  },
+  "teacher_CLASS_NAMES_in_finetune_yolov8l": [
+    "person",
+    "car",
+    "bicycle"
+  ],
+  "coco2yolo_py_rule": {
+    "cls_id = category_id - 1": {
+      "person(1)": 0,
+      "bike(2)": 1,
+      "car(3)": 2,
+      "sign(10)": 9
+    },
+    "filters_to_3_classes": false
+  },
+  "evaluate_thermal_default_class_names": [
+    "person",
+    "car",
+    "bicycle"
+  ],
+  "metrics_py_print_names": [
+    "bicycle",
+    "car",
+    "person"
+  ],
+  "letterbox_640x512_to_512": {
+    "gain": 0.8,
+    "pad_left_top": [
+      0,
+      51
+    ],
+    "content_hw": [
+      410,
+      512
+    ],
+    "box0_norm_xywh": [
+      0.0390625,
+      0.177734375,
+      0.046875,
+      0.09375
+    ]
+  }
+}

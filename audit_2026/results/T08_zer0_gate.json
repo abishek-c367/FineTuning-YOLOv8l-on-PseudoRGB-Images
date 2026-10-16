@@ -1,0 +1,77 @@
+{
+  "env": {
+    "python": "3.10.12",
+    "torch": "2.6.0+cu124",
+    "cuda_available": true,
+    "cuda_version": "12.4",
+    "gpu": "NVIDIA GeForce RTX 2080 Ti",
+    "time": "2026-10-15T21:20:47",
+    "ultralytics": "8.4.178",
+    "student_repo_commit": "373dbdd7c2ff6c8e29f93bcbbb4fe4880c65b519",
+    "zer0_repo_commit": "7948bd6aa8fe9139a8779f09190e821d900969f6"
+  },
+  "gate_params": 4739,
+  "gate_has_pretrained_weights_in_repo": false,
+  "gate_outputs_random_init": {
+    "clear": {
+      "class": 1,
+      "probs": [
+        0.186,
+        0.647,
+        0.167
+      ],
+      "features": [
+        0.0097,
+        0.08,
+        0.8354,
+        0.8871,
+        0.0343
+      ]
+    },
+    "fog": {
+      "class": 1,
+      "probs": [
+        0.216,
+        0.472,
+        0.311
+      ],
+      "features": [
+        0.0004,
+        0.3933,
+        0.5226,
+        0.8022,
+        0.0048
+      ]
+    },
+    "rain": {
+      "class": 1,
+      "probs": [
+        0.179,
+        0.671,
+        0.15
+      ],
+      "features": [
+        0.0158,
+        0.08,
+        1.0,
+        0.8638,
+        0.1585
+      ]
+    }
+  },
+  "fog_enhancer": {
+    "in_mean": 0.4933139383792877,
+    "out_mean": 0.49799180030822754,
+    "in_std": 0.019774479791522026,
+    "out_std": 0.019706793129444122,
+    "gamma": 0.9866278767585754
+  },
+  "rain_remover_params": 1866,
+  "rain_remover_random_init": {
+    "in_mean": 0.5124842524528503,
+    "out_mean": 0.6547566056251526,
+    "out_min": 0.07058823853731155,
+    "out_max": 1.0,
+    "mean_abs_change": 0.14870581030845642
+  }
+}

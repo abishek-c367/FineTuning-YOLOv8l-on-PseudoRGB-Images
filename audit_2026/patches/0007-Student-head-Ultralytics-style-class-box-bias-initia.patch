@@ -1,0 +1,39 @@
+From 3f6f1ff02ce328cdef9e0fb691a171ec265e998c Mon Sep 17 00:00:00 2001
+From: Ganesh Shiwakoti <133992568+Singati2@users.noreply.github.com>
+Date: Thu, 15 Oct 2026 22:09:13 -0400
+Subject: [PATCH 7/7] Student head: Ultralytics-style class/box bias
+ initialisation (audit C7)
+
+---
+ Student/yolov8_thermal.py | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/Student/yolov8_thermal.py b/Student/yolov8_thermal.py
+index 16bb352..c063adc 100644
+--- a/Student/yolov8_thermal.py
++++ b/Student/yolov8_thermal.py
+@@ -635,6 +635,12 @@ class P2DetectionHead(nn.Module):
+         
+         # Objectness branch
+         self.obj_pred = nn.Conv2d(in_channels, 1, 1)
++
++    def bias_init(self, stride: float, imgsz: int = 640) -> None:
++        """Ultralytics-style prior initialisation (audit C7): cls bias = log(5/nc/(imgsz/stride)^2), box bias = 1."""
++        with torch.no_grad():
++            self.reg_pred.bias.fill_(1.0)
++            self.cls_pred.bias.fill_(math.log(5 / self.num_classes / (imgsz / stride) ** 2))
+     
+     def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
+         """
+@@ -855,6 +861,8 @@ class YOLOv8Thermal(nn.Module):
+             num_classes=num_classes,
+             include_p2=include_p2
+         )
++        for scale, s in zip(self._scale_names, self.stride.tolist()):
++            self.head.heads[scale].bias_init(s)
+     
+     def forward(
+         self,
+-- 
+2.34.1
+

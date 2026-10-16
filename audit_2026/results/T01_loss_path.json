@@ -1,0 +1,82 @@
+{
+  "env": {
+    "python": "3.10.12",
+    "torch": "2.6.0+cu124",
+    "cuda_available": true,
+    "cuda_version": "12.4",
+    "gpu": "NVIDIA GeForce RTX 2080 Ti",
+    "time": "2026-10-15T21:32:36",
+    "ultralytics": "8.4.178",
+    "student_repo_commit": "06e70f45c5da35f5d4474a7eacab4495a7dcdca8",
+    "zer0_repo_commit": "7948bd6aa8fe9139a8779f09190e821d900969f6"
+  },
+  "checks": {
+    "loss_constructed": true,
+    "tuple_path_as_in_train_step": {
+      "loss": 23.289060592651367,
+      "finite": true,
+      "components_box_cls_dfl": {
+        "box_loss": 2.251492500305176,
+        "cls_loss": 5.185574531555176,
+        "dfl_loss": 4.207463264465332
+      },
+      "n_params_with_grad": 223,
+      "n_params": 231,
+      "grad_norm_stem": 11.228084564208984,
+      "grad_norm_P2_cls": 0.8047037720680237,
+      "all_grads_finite": true
+    },
+    "plain_list_path": "FAIL: TypeError('list indices must be integers or slices, not str')\nTraceback (most recent call last):\n  File \"/home/mpcrlab/gateir_audit/tests/test_01_loss_path.py\", line 45, in <module>\n    l = loss_fn(inp, targets)\n  File \"/home/mpcrlab/gateir_audit/venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1739, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n  File \"/home/mpcrlab/gateir_audit/venv/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1750, in _call_impl\n    return forward_call(*args, **kwargs)\n  File \"/home/mpcrlab/gateir_audit/repos/student_repo/Distillation.py\", line 1103, in forward\n    return self.loss_fn(predictions, targets)\n  File \"/home/mpcrlab/gateir_audit/venv/lib/python3.10/site-packages/ultralytics/utils/loss.py\", line 490, in __call__\n    return self.loss(self.parse_output(preds), batch)\n  File \"/home/mpcrlab/gateir_audit/venv/lib/python3.10/site-packages/ultralytics/utils/loss.py\", line 496, in loss\n    batch_size = preds[\"boxes\"].shape[0]\nTypeError: list indices must be integers or slices, not str\n",
+    "empty_targets_loss": "FAIL: TypeError('list indices must be integers or slices, not str')"
+  },
+  "student_params": 21500400,
+  "student_params_with_vit": 22290160,
+  "student_params_default_ctor_nc3": 22137772,
+  "student_output_keys": [
+    "predictions",
+    "predictions_ultralytics",
+    "backbone_features",
+    "fused_features"
+  ],
+  "pred_shapes": [
+    [
+      2,
+      67,
+      128,
+      128
+    ],
+    [
+      2,
+      67,
+      64,
+      64
+    ],
+    [
+      2,
+      67,
+      32,
+      32
+    ],
+    [
+      2,
+      67,
+      16,
+      16
+    ]
+  ],
+  "stride": [
+    4,
+    8,
+    16,
+    32
+  ],
+  "tuple_types": [
+    "Tensor",
+    "dict",
+    [
+      "boxes",
+      "scores",
+      "feats"
+    ]
+  ]
+}
